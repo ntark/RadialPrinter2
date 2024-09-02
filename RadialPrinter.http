@@ -1,0 +1,6 @@
+@RadialPrinter_HostAddress = http://localhost:5090
+
+GET {{RadialPrinter_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
