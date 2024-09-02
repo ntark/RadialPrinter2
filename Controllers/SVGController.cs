@@ -16,13 +16,13 @@ namespace RadialPrinter.Controllers
         [HttpPost("toGCode")]
         public string ToGCode()
         {
-            return "damn";
+            return "ToGCode";
         }
 
         [HttpPost("toCenterlineSVG")]
         public string ToCenterlineSVG()
         {
-            return "dam2n";
+            return "ToCenterlineSVG";
         }
     }
 }

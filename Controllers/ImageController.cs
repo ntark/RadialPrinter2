@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace RadialPrinter.Controllers
 {
@@ -14,21 +15,21 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("toSVG")]
-        public string ToSVG()
+        public async Task<IActionResult> ToSVG(IFormFile file)
         {
-            return "damn";
+            return File(file.OpenReadStream(), "application/octet-stream", file.FileName);
         }
 
         [HttpPost("toEdges")]
         public string ToEdges()
         {
-            return "dam2n";
+            return "ToEdges";
         }
 
         [HttpPost("toRadialFill")]
         public string ToRadialFill()
         {
-            return "dam2n";
+            return "ToRadialFill";
         }
     }
 }

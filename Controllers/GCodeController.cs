@@ -16,13 +16,13 @@ namespace RadialPrinter.Controllers
         [HttpPost("xyToRad")]
         public string XyToRad()
         {
-            return "damn";
+            return "XyToRad";
         }
 
         [HttpPost("transform")]
         public string Transform()
         {
-            return "dam2n";
+            return "Transform";
         }
     }
 }
