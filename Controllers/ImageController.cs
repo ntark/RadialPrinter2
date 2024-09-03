@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Diagnostics;
+using RadialPrinter.Util;
 
 namespace RadialPrinter.Controllers
 {
@@ -24,6 +25,21 @@ namespace RadialPrinter.Controllers
 
         string ImageGCodeResult(string hash){
             return $"/home/opc/workspace/works/c#/RadialPrinter2/Converter/temp/image_{hash}.gcode";
+        }
+
+        [HttpPost("toSvg")]
+        public async Task<IActionResult> ToSvg(IFormFile file)
+        {
+            var filePath = Path.Combine("Uploads", file.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var resPath = await PythonAPIHelper.ImageToSvg(filePath);
+
+            return Ok(resPath);
         }
 
 

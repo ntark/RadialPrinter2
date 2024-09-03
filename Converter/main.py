@@ -97,7 +97,7 @@ TEMP_FLODER_PATH = "/home/opc/workspace/works/c#/RadialPrinter2/Converter/temp/"
 CARGO_FOLDER_PATH = "/home/opc/workspace/works/c#/RadialPrinter2/Converter/svg2gcode"
 
 
-@app.route("/imageToSvg", methods=["POST"])
+@app.route("/imageToSvg", methods=["GET"])
 def imageToSvg():
     try:
         filePath = request.args.get("filePath")
@@ -122,7 +122,7 @@ def imageToSvg():
         return str(e), 500
 
 
-@app.route("/svgToGCode", methods=["POST"])
+@app.route("/svgToGCode", methods=["GET"])
 def svgToGCode():
     try:
         filePath = request.args.get("filePath")
@@ -139,7 +139,7 @@ def svgToGCode():
         return str(e), 500
 
 
-@app.route("/imageToEdges", methods=["POST"])
+@app.route("/imageToEdges", methods=["GET"])
 def imageToEdges():
     try:
         filePath = request.args.get("filePath")
