@@ -93,8 +93,10 @@ app = Flask(__name__)
 # -- edges to svg edges
 # -- svg edges to svg gcode
 
-TEMP_FLODER_PATH = "/home/opc/workspace/works/c#/RadialPrinter2/Converter/temp/"
-CARGO_FOLDER_PATH = "/home/opc/workspace/works/c#/RadialPrinter2/Converter/svg2gcode"
+TEMP_FLODER_PATH = "/home/opc/workspace/works/csharp/RadialPrinter2/Converter/temp/"
+CARGO_FOLDER_PATH = (
+    "/home/opc/workspace/works/csharp/RadialPrinter2/Converter/svg2gcode"
+)
 
 
 @app.route("/imageToSvg", methods=["GET"])
