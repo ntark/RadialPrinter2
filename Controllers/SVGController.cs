@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RadialPrinter.Util;
 
 namespace RadialPrinter.Controllers
 {
@@ -14,9 +15,20 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("toGCode")]
-        public string ToGCode()
+        public async Task<IActionResult> ToGCode(IFormFile file)
         {
-            return "ToGCode";
+            try
+            {
+                var filePath = await FileHelper.UploadFile(file);
+
+                var resPath = await PythonAPIHelper.SvgToGCode(filePath);
+
+                return Ok(resPath);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("toCenterlineSVG")]

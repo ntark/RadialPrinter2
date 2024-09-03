@@ -6,17 +6,39 @@ namespace RadialPrinter.Util
 
         public static async Task<string> ImageToSvg(string filePath)
         {
-            using HttpClient client = new HttpClient();
-
             var url = $"{BaseUrl}imageToSvg?filePath={filePath}";
+            
+            return await PythonAPIRequest(url);
+        }
+
+        public static async Task<string> ImageToEdges(string filePath)
+        {
+            var url = $"{BaseUrl}imageToEdges?filePath={filePath}";
+
+            return await PythonAPIRequest(url);
+        }
+
+        public static async Task<string> SvgToGCode(string filePath)
+        {
+            var url = $"{BaseUrl}svgToGCode?filePath={filePath}";
+
+            return await PythonAPIRequest(url);
+        }
+
+        private static async Task<string> PythonAPIRequest(string url)
+        {
+            using HttpClient client = new HttpClient();
 
             var response = await client.GetAsync(url);
 
-            response.EnsureSuccessStatusCode();
-
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            return responseBody;
+            if (response.IsSuccessStatusCode)
+            {
+                return responseBody;
+            }
+
+            throw new Exception(responseBody);
         }
     }
 }
