@@ -25,7 +25,9 @@ namespace RadialPrinter.Controllers
 
                 var resPath = await PythonAPIHelper.ImageToSvg(filePath);
 
-                return Ok(resPath);
+                var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
+
+                return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
             }
             catch (Exception ex) 
             {
@@ -42,7 +44,9 @@ namespace RadialPrinter.Controllers
 
                 var resPath = await PythonAPIHelper.ImageToEdges(filePath);
 
-                return Ok(resPath);
+                var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
+
+                return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
             }
             catch (Exception ex)
             {
