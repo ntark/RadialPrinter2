@@ -11,7 +11,7 @@
                 await file.CopyToAsync(stream);
             }
 
-            return filePath;
+            return Path.GetFullPath(filePath);
         }
     }
 }
