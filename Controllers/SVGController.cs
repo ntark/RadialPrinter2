@@ -15,13 +15,15 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("toGCode")]
-        public async Task<IActionResult> ToGCode(IFormFile file)
+        public async Task<IActionResult> ToGCode(IFormFile file, bool normalize = true)
         {
             try
             {
                 var filePath = await FileHelper.UploadFile(file);
 
                 var resPath = await PythonAPIHelper.SvgToGCode(filePath);
+
+                resPath = normalize ? await GCodeUtil.NormalizeIntoFile(resPath) : resPath;
 
                 var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
 

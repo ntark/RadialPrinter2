@@ -36,7 +36,7 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("toGCode")]
-        public async Task<IActionResult> ToGCode(IFormFile file)
+        public async Task<IActionResult> ToGCode(IFormFile file, bool normalize = true)
         {
             try
             {
@@ -45,6 +45,8 @@ namespace RadialPrinter.Controllers
                 var svgPath = await PythonAPIHelper.ImageToSvg(filePath);
 
                 var resPath = await PythonAPIHelper.SvgToGCode(svgPath);
+
+                resPath = normalize ? await GCodeUtil.NormalizeIntoFile(resPath) : resPath;
 
                 var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
 
@@ -97,7 +99,7 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("toEdgesGCode")]
-        public async Task<IActionResult> ToEdgesGCode(IFormFile file)
+        public async Task<IActionResult> ToEdgesGCode(IFormFile file, bool normalize = true)
         {
             try
             {
@@ -108,6 +110,8 @@ namespace RadialPrinter.Controllers
                 var svgPath = await PythonAPIHelper.ImageToSvg(edgesPath);
 
                 var resPath = await PythonAPIHelper.SvgToGCode(svgPath);
+
+                resPath = normalize ? await GCodeUtil.NormalizeIntoFile(resPath) : resPath;
 
                 var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
 
