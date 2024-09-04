@@ -18,5 +18,10 @@
 
             return Path.GetFullPath(filePath);
         }
+
+        public static string GetRandomFilePath(string? folderPath, string extension)
+        {
+            return Path.Join(folderPath, $"{Guid.NewGuid()}{extension}");
+        }
     }
 }

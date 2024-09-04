@@ -11,9 +11,7 @@ namespace RadialPrinter.Util
         {
             var normalizedLines = await Normalize(filePath);
 
-            var tempFolderPath = Path.GetDirectoryName(filePath);
-
-            var resPath = Path.Join(tempFolderPath, $"{Guid.NewGuid().ToString()}.rgcode");
+            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".ngcode");
 
             var fileText = string.Join("", normalizedLines.Select(l => $"G{l.Item1} X{l.Item2} Y{l.Item3}{Environment.NewLine}").ToList());
 
