@@ -5,6 +5,8 @@ using RadialPrinter.Util;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp;
 using System.IO.Pipes;
+using RadialPrinter.Models;
+using RadialPrinter.Enums;
 
 namespace RadialPrinter.Controllers
 {
@@ -32,7 +34,7 @@ namespace RadialPrinter.Controllers
 
                 return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -127,7 +129,16 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("toRadialFill")]
-        public async Task<IActionResult> ToRadialFill(IFormFile file)
+        public async Task<IActionResult> ToRadialFill(
+            IFormFile file,
+            RadialFillFileType fileType,
+            byte minThreshold = 1,
+            byte maxThreshold = 250,
+            bool invert = false,
+            int angle_steps = 1000,
+            int radius_steps = 50, 
+            int RADIUS_STEPPER_STEPS = 1200, 
+            int ANGLE_STEPPER_STEPS = 4000)
         {
             try
             {
@@ -138,13 +149,6 @@ namespace RadialPrinter.Controllers
                 bool[,] im = new bool[image.Width, image.Height];
 
                 int scale = Math.Max(image.Width, image.Height);
-
-                byte minThreshold = 1;
-                byte maxThreshold = 250;
-                bool invert = false;
-
-                int angle_steps = 1000;
-                int radius_steps = 50;
 
                 for (int y = 0; y < image.Height; y++)
                 {
@@ -159,13 +163,21 @@ namespace RadialPrinter.Controllers
                 }
 
                 using var resImage = new Image<L8>(image.Width, image.Height);
+                var instructions = new List<RadialInstruction>();
 
                 for (int radius = 0; radius <= radius_steps; radius++)
                 {
+                    double r = (double)radius / radius_steps * scale / 2.0;
+                    int R = radius * RADIUS_STEPPER_STEPS / radius_steps;
+
+                    bool prevLineDrawn = false;
+                    int drawStartA = 0;
+                    int drawEndA = 0;
+
                     for (int angle = 0; angle < angle_steps; angle++)
                     {
-                        double r = (double)radius / radius_steps * scale / 2.0;
                         double a = (double)angle / angle_steps * 2.0 * Math.PI;
+                        int A = angle * ANGLE_STEPPER_STEPS / angle_steps;
 
                         double x = r * Math.Cos(a) + image.Width / 2.0;
                         double y = r * Math.Sin(a) + image.Height / 2.0;
@@ -173,16 +185,58 @@ namespace RadialPrinter.Controllers
                         int X = (int)Math.Round(x);
                         int Y = image.Height - (int)Math.Round(y);
 
-                        if (X >= 0 && Y >= 0 && X < image.Width && Y < image.Height && im[X, Y])
+                        var drawThatLine = X >= 0 && Y >= 0 && X < image.Width && Y < image.Height && im[X, Y];
+
+                        if (drawThatLine)
                         {
                             resImage[X, Y] = new L8(255);
+
+                            if (!prevLineDrawn)
+                            {
+                                drawStartA = A;
+                            }
+                            drawEndA = A;
                         }
+                        else if (prevLineDrawn)
+                        {
+                            instructions.Add(new(0, R, drawStartA));
+                            instructions.Add(new(0, R, drawEndA));
+                        }
+
+                        prevLineDrawn = drawThatLine;
+                    }
+
+                    if (prevLineDrawn)
+                    {
+                        instructions.Add(new(0, R, drawStartA));
+                        instructions.Add(new(0, R, drawEndA));
                     }
                 }
 
-                var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".png");
+                var resPath = "";
 
-                resImage.Save(resPath);
+                switch (fileType)
+                {
+                    case RadialFillFileType.Instructions:
+                        {
+                            var instructionsText = string.Join("", instructions.Select(x => $"R{x.Mode} {x.R} {x.A}{Environment.NewLine}").ToList());
+
+                            resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".rgcode");
+
+                            await System.IO.File.WriteAllTextAsync(resPath, instructionsText);
+
+                            break;
+                        }
+                    case RadialFillFileType.Preview:
+                        {
+                            resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".png");
+
+                            resImage.Save(resPath);
+                            break;
+                        }
+                    default:
+                        throw new NotImplementedException();
+                }
 
                 var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
 
@@ -193,6 +247,5 @@ namespace RadialPrinter.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
     }
 }
