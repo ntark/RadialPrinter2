@@ -38,7 +38,7 @@ def svg_to_gcode(in_path, out_path):
     os.chdir(CARGO_FOLDER_PATH)
 
     res = os.system(
-        f"cargo run --release -- {in_path} --off 'M4' --on 'M5' -o {out_path}"
+        f"RUSTFLAGS=\"-Awarnings\" cargo run --release -- {in_path} --off 'M4' --on 'M5' -o {out_path}"
     )
 
     if res != 0:

@@ -142,6 +142,7 @@ namespace RadialPrinter.Controllers
         {
             try
             {
+                Console.WriteLine($"ToRadialFill on file {file.FileName}");
                 var filePath = await FileHelper.UploadFile(file);
 
                 using Image<La16> image = Image.Load<La16>(filePath);
@@ -200,7 +201,7 @@ namespace RadialPrinter.Controllers
                         else if (prevLineDrawn)
                         {
                             instructions.Add(new(0, R, drawStartA));
-                            instructions.Add(new(0, R, drawEndA));
+                            instructions.Add(new(1, R, drawEndA));
                         }
 
                         prevLineDrawn = drawThatLine;
@@ -209,7 +210,7 @@ namespace RadialPrinter.Controllers
                     if (prevLineDrawn)
                     {
                         instructions.Add(new(0, R, drawStartA));
-                        instructions.Add(new(0, R, drawEndA));
+                        instructions.Add(new(1, R, drawEndA));
                     }
                 }
 
@@ -238,12 +239,15 @@ namespace RadialPrinter.Controllers
                         throw new NotImplementedException();
                 }
 
+                Console.WriteLine($"ToRadialFill returning file {resPath}");
+
                 var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
 
                 return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return BadRequest(ex.Message);
             }
         }
