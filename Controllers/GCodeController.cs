@@ -25,5 +25,25 @@ namespace RadialPrinter.Controllers
         {
             return "Transform";
         }
+
+        [HttpPost("fetchLatest")]
+        public async Task<IActionResult> FetchLatest()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(LatestState.LatestPath))
+                {
+                    return NoContent();
+                }
+
+                var instructions = System.IO.File.ReadAllText(LatestState.LatestPath);
+
+                return Ok(instructions);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
     }
 }

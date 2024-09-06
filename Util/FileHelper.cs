@@ -1,4 +1,6 @@
-﻿namespace RadialPrinter.Util
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace RadialPrinter.Util
 {
     public class FileHelper
     {

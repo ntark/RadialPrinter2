@@ -226,6 +226,8 @@ namespace RadialPrinter.Controllers
 
                             await System.IO.File.WriteAllTextAsync(resPath, instructionsText);
 
+                            LatestState.LatestPath = resPath;
+
                             break;
                         }
                     case RadialFillFileType.Preview:
