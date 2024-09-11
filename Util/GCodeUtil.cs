@@ -70,5 +70,95 @@ namespace RadialPrinter.Util
 
             return coordinates;
         }
+
+        public static async Task<List<Point>> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -4000, int angleSteps = 27800)
+        {
+            string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
+
+            var points = new List<Point>() { new Point(0, 0, 0) };
+
+            Regex regex = new Regex(@"^G([01])\sX([0-9\.]+)\sY([0-9\.]+)");
+
+            foreach (var line in gcodeLines)
+            {
+                Match match = regex.Match(line);
+                if (match.Success)
+                {
+                    var cut = int.Parse(match.Groups[1].Value);
+                    var x = decimal.Parse(match.Groups[2].Value);
+                    var y = decimal.Parse(match.Groups[3].Value);
+                    points.Add(new Point(cut, x, y));
+                }
+            }
+
+            var filledPoints = new List<Point>();
+
+            Point? prevPoint = null;
+            foreach (var point in points)
+            {
+                if (prevPoint != null)
+                {
+                    Point p1 = prevPoint;
+                    Point p2 = point;
+
+                    filledPoints.Add(p1);
+
+                    int mode = p2.Mode;
+
+                    if (mode == 0)
+                    {
+                        continue;
+                    }
+
+                    double distance = p1.DistanceTo(p2);
+
+                    if (distance > maxDistance)
+                    {
+                        int numOfPoints = (int)Math.Ceiling(distance / maxDistance);
+                        decimal dx = (p2.X - p1.X) / numOfPoints;
+                        decimal dy = (p2.Y - p1.Y) / numOfPoints;
+
+                        for (int j = 1; j < numOfPoints; j++)
+                        {
+                            decimal newX = p1.X + j * dx;
+                            decimal newY = p1.Y + j * dy;
+                            filledPoints.Add(new Point(mode, newX, newY));
+                        }
+                    }
+                }
+                prevPoint = point;
+            }
+
+            var radialPoints = new List<Point>();
+
+            foreach (Point point in filledPoints)
+            {
+                int r = (int)(Math.Sqrt(Math.Pow((double)point.X, 2) + Math.Pow((double)point.Y, 2)) * radialSteps);
+                int angle = (int)(Math.Atan2((double)point.Y, (double)point.X) * angleSteps / (2 * Math.PI));
+
+                radialPoints.Add(new Point(point.Mode, r, angle));
+            }
+
+            return radialPoints;
+        }
+
+        public class Point
+        {
+            public int Mode { get; }
+            public decimal X { get; }
+            public decimal Y { get; }
+
+            public Point(int mode, decimal x, decimal y)
+            {
+                Mode = mode;
+                X = x;
+                Y = y;
+            }
+
+            public double DistanceTo(Point other)
+            {
+                return Math.Sqrt(Math.Pow((double)(X - other.X), 2) + Math.Pow((double)(Y - other.Y), 2));
+            }
+        }
     }
 }
