@@ -27,7 +27,7 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("fetchLatest")]
-        public async Task<IActionResult> FetchLatest()
+        public IActionResult FetchLatest()
         {
             try
             {
@@ -42,6 +42,36 @@ namespace RadialPrinter.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("drawing")]
+        public IActionResult Drawing()
+        {
+            try
+            {
+                return Ok(LatestState.Drawing);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return BadRequest(false);
+            }
+        }
+
+        [HttpPost("setDrawing")]
+        public IActionResult SetDrawing(bool drawing)
+        {
+            try
+            {
+                LatestState.Drawing = drawing;
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
                 return BadRequest();
             }
         }
