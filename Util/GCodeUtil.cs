@@ -140,7 +140,7 @@ namespace RadialPrinter.Util
 
             var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".rgcode");
 
-            var fileText = string.Join("", radialPoints.Select(r => $"G{r.Item1} X{r.Item2} Y{r.Item3}{Environment.NewLine}").ToList());
+            var fileText = string.Join("", radialPoints.Select(r => $"R{r.Item1} X{r.Item2} Y{r.Item3}{Environment.NewLine}").ToList());
 
             await File.WriteAllTextAsync(resPath, fileText);
 
