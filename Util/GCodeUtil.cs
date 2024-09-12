@@ -128,7 +128,7 @@ namespace RadialPrinter.Util
                 }
             }
 
-            var radialPoints = new List<(int, int, int)>();
+            var radialPoints = new List<RadialPoint>();
 
             foreach (Point point in filledPoints)
             {
@@ -136,16 +136,56 @@ namespace RadialPrinter.Util
                 int angle = (int)(Math.Atan2((double)point.Y, (double)point.X) * angleSteps / (2 * Math.PI));
                 angle = angle < 0 ? angleSteps + angle : angle;
 
-                radialPoints.Add((point.Mode, r, angle));
+                radialPoints.Add(new RadialPoint(point.Mode, r, angle));
+            }
+
+            var radialNoJumpPoints = new List<RadialPoint>();
+
+            RadialPoint? prevRadPoint = null;
+            var angleThresholdMin = angleSteps * 0.2;
+            var angleThresholdMax = angleSteps * 0.8;
+            var currentOffset = 0;
+
+            foreach (var point in radialPoints)
+            {
+                if (prevRadPoint == null)
+                {
+                    radialNoJumpPoints.Add(point);
+                    prevRadPoint = point;
+                    continue;
+                }
+                if(point.A == 27781)
+                {
+
+                }
+                if(prevRadPoint.A > angleThresholdMax && point.A < angleThresholdMin) 
+                {
+                    currentOffset += angleSteps;
+                }
+                if(prevRadPoint.A < angleThresholdMin && point.A > angleThresholdMax)
+                {
+                    currentOffset -= angleSteps;
+                }
+
+                radialNoJumpPoints.Add(new RadialPoint(point.Mode, point.R, point.A + currentOffset));
+
+                prevRadPoint = point;
             }
 
             var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".rgcode");
 
-            var fileText = string.Join("", radialPoints.Select(r => $"R{r.Item1} {r.Item2} {r.Item3}{Environment.NewLine}").ToList());
+            var fileText = string.Join("", radialNoJumpPoints.Select(r => $"R{r.Mode} {r.R} {r.A}{Environment.NewLine}").ToList());
 
             await File.WriteAllTextAsync(resPath, fileText);
 
             return resPath;
+        }
+
+        public class RadialPoint(int mode, int r, int a)
+        {
+            public int Mode { get; set; } = mode;
+            public int R { get; set; } = r;
+            public int A { get; set; } = a;
         }
 
         public class Point
