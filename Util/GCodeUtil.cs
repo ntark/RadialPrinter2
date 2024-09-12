@@ -9,18 +9,12 @@ namespace RadialPrinter.Util
     {
         public static async Task<string> NormalizeIntoFile(string filePath)
         {
-            var normalizedLines = await Normalize(filePath);
-
-            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".ngcode");
-
-            var fileText = string.Join("", normalizedLines.Select(l => $"G{l.Item1} X{l.Item2} Y{l.Item3}{Environment.NewLine}").ToList());
-
-            await File.WriteAllTextAsync(resPath, fileText);
+            var resPath = await Normalize(filePath);
 
             return resPath;
         }
 
-        public static async Task<List<(int, decimal, decimal)>> Normalize(string filePath)
+        public static async Task<string> Normalize(string filePath)
         {
             string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
 
@@ -42,7 +36,7 @@ namespace RadialPrinter.Util
 
             if(coordinates.Count == 0)
             {
-                return new List<(int, decimal, decimal)>();
+                throw new Exception("empty lines");
             }
 
             decimal maxX = decimal.MinValue;
@@ -68,16 +62,22 @@ namespace RadialPrinter.Util
 
             coordinates = coordinates.Select(c => (c.Item1, (c.Item2 - minX) / scalar - dX, (c.Item3 - minY) / scalar - dY)).ToList();
 
-            return coordinates;
-        }
+            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".ngcode");
 
-        public static async Task<List<Point>> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -4000, int angleSteps = 27800)
+            var fileText = string.Join("", coordinates.Select(l => $"G{l.Item1} X{l.Item2} Y{l.Item3}{Environment.NewLine}").ToList());
+
+            await File.WriteAllTextAsync(resPath, fileText);
+
+            return resPath;
+        }
+        
+        public static async Task<string> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -4000, int angleSteps = 27800)
         {
             string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
 
             var points = new List<Point>() { new Point(0, 0, 0) };
 
-            Regex regex = new Regex(@"^G([01])\sX([0-9\.]+)\sY([0-9\.]+)");
+            Regex regex = new Regex(@"^G([01])\sX([0-9\-\.]+)\sY([0-9\-\.]+)");
 
             foreach (var line in gcodeLines)
             {
@@ -96,50 +96,55 @@ namespace RadialPrinter.Util
             Point? prevPoint = null;
             foreach (var point in points)
             {
-                if (prevPoint != null)
+                if (prevPoint == null)
                 {
-                    Point p1 = prevPoint;
-                    Point p2 = point;
-
-                    filledPoints.Add(p1);
-
-                    int mode = p2.Mode;
-
-                    if (mode == 0)
-                    {
-                        continue;
-                    }
-
-                    double distance = p1.DistanceTo(p2);
-
-                    if (distance > maxDistance)
-                    {
-                        int numOfPoints = (int)Math.Ceiling(distance / maxDistance);
-                        decimal dx = (p2.X - p1.X) / numOfPoints;
-                        decimal dy = (p2.Y - p1.Y) / numOfPoints;
-
-                        for (int j = 1; j < numOfPoints; j++)
-                        {
-                            decimal newX = p1.X + j * dx;
-                            decimal newY = p1.Y + j * dy;
-                            filledPoints.Add(new Point(mode, newX, newY));
-                        }
-                    }
+                    prevPoint = point;
+                    continue;
                 }
+
+                Point p1 = prevPoint;
+                Point p2 = point;
+
                 prevPoint = point;
+                
+                int mode = p2.Mode;
+                double distance = p1.DistanceTo(p2);
+
+                if (mode == 0 || distance <= maxDistance)
+                {
+                    filledPoints.Add(p2);
+                    continue;
+                }
+
+                int numOfPoints = (int)Math.Ceiling(distance / maxDistance);
+                decimal dx = (p2.X - p1.X) / numOfPoints;
+                decimal dy = (p2.Y - p1.Y) / numOfPoints;
+
+                for (int j = 1; j <= numOfPoints; j++)
+                {
+                    decimal newX = p1.X + j * dx;
+                    decimal newY = p1.Y + j * dy;
+                    filledPoints.Add(new Point(mode, newX, newY));
+                }
             }
 
-            var radialPoints = new List<Point>();
+            var radialPoints = new List<(int, int, int)>();
 
             foreach (Point point in filledPoints)
             {
                 int r = (int)(Math.Sqrt(Math.Pow((double)point.X, 2) + Math.Pow((double)point.Y, 2)) * radialSteps);
                 int angle = (int)(Math.Atan2((double)point.Y, (double)point.X) * angleSteps / (2 * Math.PI));
 
-                radialPoints.Add(new Point(point.Mode, r, angle));
+                radialPoints.Add((point.Mode, r, angle));
             }
 
-            return radialPoints;
+            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".rgcode");
+
+            var fileText = string.Join("", radialPoints.Select(r => $"G{r.Item1} X{r.Item2} Y{r.Item3}{Environment.NewLine}").ToList());
+
+            await File.WriteAllTextAsync(resPath, fileText);
+
+            return resPath;
         }
 
         public class Point

@@ -15,9 +15,28 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("xyToRad")]
-        public string XyToRad()
+        public async Task<IActionResult> XyToRad(
+            IFormFile file, 
+            double maxDistance = 0.1,
+            int radialSteps = -4000,
+            int angleSteps = 27800)
         {
-            return "XyToRad";
+            try
+            {
+                var filePath = await FileHelper.UploadFile(file);
+
+                var resPath = await GCodeUtil.XyToRad(filePath, maxDistance, radialSteps, angleSteps);
+
+                LatestState.LatestPath = resPath;
+
+                var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
+
+                return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("transform")]
