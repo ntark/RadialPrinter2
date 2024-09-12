@@ -34,7 +34,7 @@ namespace RadialPrinter.Util
                 }
             }
 
-            if(coordinates.Count == 0)
+            if (coordinates.Count == 0)
             {
                 throw new Exception("empty lines");
             }
@@ -70,7 +70,7 @@ namespace RadialPrinter.Util
 
             return resPath;
         }
-        
+
         public static async Task<string> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -4000, int angleSteps = 27800)
         {
             string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
@@ -106,7 +106,7 @@ namespace RadialPrinter.Util
                 Point p2 = point;
 
                 prevPoint = point;
-                
+
                 int mode = p2.Mode;
                 double distance = p1.DistanceTo(p2);
 
@@ -134,6 +134,7 @@ namespace RadialPrinter.Util
             {
                 int r = (int)(Math.Sqrt(Math.Pow((double)point.X, 2) + Math.Pow((double)point.Y, 2)) * radialSteps);
                 int angle = (int)(Math.Atan2((double)point.Y, (double)point.X) * angleSteps / (2 * Math.PI));
+                angle = angle < 0 ? angleSteps + angle : angle;
 
                 radialPoints.Add((point.Mode, r, angle));
             }
