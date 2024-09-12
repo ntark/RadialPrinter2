@@ -71,7 +71,7 @@ namespace RadialPrinter.Util
             return resPath;
         }
 
-        public static async Task<string> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -4000, int angleSteps = 27800)
+        public static async Task<string> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -3500, int angleSteps = 27800)
         {
             string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
 

@@ -137,7 +137,7 @@ namespace RadialPrinter.Controllers
             bool invert = false,
             int angle_steps = 1000,
             int radius_steps = 50,
-            int RADIUS_STEPPER_STEPS = -4000,
+            int RADIUS_STEPPER_STEPS = -3500,
             int ANGLE_STEPPER_STEPS = 27800)
         {
             try

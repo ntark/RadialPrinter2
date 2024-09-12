@@ -18,7 +18,7 @@ namespace RadialPrinter.Controllers
         public async Task<IActionResult> XyToRad(
             IFormFile file, 
             double maxDistance = 0.1,
-            int radialSteps = -4000,
+            int radialSteps = -3500,
             int angleSteps = 27800)
         {
             try
