@@ -154,10 +154,7 @@ namespace RadialPrinter.Util
                     prevRadPoint = point;
                     continue;
                 }
-                if(point.A == 27781)
-                {
 
-                }
                 if(prevRadPoint.A > angleThresholdMax && point.A < angleThresholdMin) 
                 {
                     currentOffset += angleSteps;
