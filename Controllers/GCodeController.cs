@@ -39,6 +39,28 @@ namespace RadialPrinter.Controllers
             }
         }
 
+        [HttpPost("radToXy")]
+        public async Task<IActionResult> YyToRad(
+            IFormFile file,
+            int radialSteps = -3500,
+            int angleSteps = 27800)
+        {
+            try
+            {
+                var filePath = await FileHelper.UploadFile(file);
+
+                var resPath = await GCodeUtil.RadToXy(filePath, radialSteps, angleSteps);
+
+                var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
+
+                return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("transform")]
         public string Transform()
         {

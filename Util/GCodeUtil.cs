@@ -71,6 +71,50 @@ namespace RadialPrinter.Util
             return resPath;
         }
 
+        public static async Task<string> RadToXy(string filePath, int radialSteps = -3500, int angleSteps = 27800)
+        {
+            string[] rcodeLines = await File.ReadAllLinesAsync(filePath);
+
+            var radialPoints = new List<RadialPoint>();
+
+            Regex regex = new Regex(@"^R([0-1])\s([0-9\-]+)\s([0-9\-]+)");
+
+            foreach (var line in rcodeLines)
+            {
+                Match match = regex.Match(line);
+                if (match.Success)
+                {
+                    var mode = int.Parse(match.Groups[1].Value);
+                    var r = int.Parse(match.Groups[2].Value);
+                    var a = int.Parse(match.Groups[3].Value);
+                    radialPoints.Add(new RadialPoint(mode, r, a));
+                }
+            }
+
+            var orthoPoints = new List<Point>();
+            
+            foreach (var radialPoint in radialPoints)
+            {
+                var mode = radialPoint.Mode;
+                var r = (double)radialPoint.R / radialSteps;
+                var a = (double)radialPoint.A / angleSteps * 2.0 * Math.PI;
+
+                decimal x = (decimal)(r * Math.Cos(a));
+                decimal y = (decimal)(r * Math.Sin(a));
+
+                orthoPoints.Add(new Point(mode, x, y));
+            }
+
+            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".rgcode");
+
+            var fileText = string.Join("", orthoPoints.Select(p => $"G{p.Mode} X{p.X} Y{p.Y}{Environment.NewLine}").ToList());
+
+            await File.WriteAllTextAsync(resPath, fileText);
+
+            return resPath;
+        }
+        
+
         public static async Task<string> XyToRad(string filePath, double maxDistance = 0.1, int radialSteps = -3500, int angleSteps = 27800)
         {
             string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
@@ -142,8 +186,8 @@ namespace RadialPrinter.Util
             var radialNoJumpPoints = new List<RadialPoint>();
 
             RadialPoint? prevRadPoint = null;
-            var angleThresholdMin = angleSteps * 0.2;
-            var angleThresholdMax = angleSteps * 0.8;
+            var angleThresholdMin = angleSteps * 0.45;
+            var angleThresholdMax = angleSteps * 0.55;
             var currentOffset = 0;
 
             foreach (var point in radialPoints)
