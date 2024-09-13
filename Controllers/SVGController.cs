@@ -35,10 +35,10 @@ namespace RadialPrinter.Controllers
             }
         }
 
-        [HttpPost("toCenterlineSVG")]
-        public string ToCenterlineSVG()
-        {
-            return "ToCenterlineSVG";
-        }
+        //[HttpPost("toCenterlineSVG")]
+        //public string ToCenterlineSVG()
+        //{
+        //    return "ToCenterlineSVG";
+        //}
     }
 }

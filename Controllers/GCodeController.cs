@@ -61,11 +61,11 @@ namespace RadialPrinter.Controllers
             }
         }
 
-        [HttpPost("transform")]
-        public string Transform()
-        {
-            return "Transform";
-        }
+        //[HttpPost("transform")]
+        //public string Transform()
+        //{
+        //    return "Transform";
+        //}
 
         [HttpPost("fetchLatest")]
         public IActionResult FetchLatest()
