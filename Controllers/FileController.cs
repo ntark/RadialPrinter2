@@ -18,7 +18,7 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DownloadFile(string fileName)
+        public IActionResult DownloadFile(string fileName)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace RadialPrinter.Controllers
                 {
                     filePath = Path.Combine(TempPath, fileName);
                 }
-                else if(System.IO.File.Exists(Path.Join(UploadPath, fileName)))
+                else if (System.IO.File.Exists(Path.Join(UploadPath, fileName)))
                 {
                     filePath = Path.Combine(UploadPath, fileName);
                 }
