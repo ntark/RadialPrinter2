@@ -51,6 +51,33 @@ def image_to_bmp(in_path, out_path):
     img = cv2.imread(in_path)
     cv2.imwrite(out_path, img)
 
+def parse_gcode(gcode_file, result_path):
+    plt.figure(figsize=(10, 10))
+    with open(gcode_file, 'r') as file:
+        px = None
+        py = None
+        for line in file:
+            parts = line.split()
+            x = y = None
+            if line.startswith('G1') or line.startswith('G0'):
+                for part in parts:
+                    if part.startswith('X'):
+                        x = float(part[1:])
+                    elif part.startswith('Y'):
+                        y = float(part[1:])
+                if x is not None and y is not None and px is not None and py is not None:
+                    if line.startswith('G1'):
+                        plt.plot([px, x], [py, y], 'b-')
+                    else:
+                        plt.plot([px, x], [py, y], 'y-')
+                px = x
+                py = y
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('G-code Preview')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(result_path, format='png')
 
 app = Flask(__name__)
 
@@ -119,6 +146,22 @@ def imageToEdges():
     except Exception as e:
         return str(e), 500
 
+@app.route("/gcodePreview", methods=["GET"])
+def gcodePreview():
+    try:
+        filePath = request.args.get("filePath")
+
+        resultFileName = f"{str(uuid.uuid4())}.png"
+
+        resultPath = os.path.join(TEMP_FLODER_PATH, resultFileName)
+
+        parse_gcode(filePath, resultPath)
+
+        return resultPath, 200
+
+    except Exception as e:
+        return str(e), 500
+        
 
 if __name__ == "__main__":
     app.run(debug=True)

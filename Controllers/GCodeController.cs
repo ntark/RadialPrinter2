@@ -116,5 +116,24 @@ namespace RadialPrinter.Controllers
                 return BadRequest();
             }
         }
+
+        [HttpPost("gcodePreview")]
+        public async Task<IActionResult> GcodePreview(IFormFile file)
+        {
+            try
+            {
+                var filePath = await FileHelper.UploadFile(file);
+
+                var resPath = await PythonAPIHelper.GcodePreview(filePath);
+
+                var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
+
+                return File(fileStream, "application/octet-stream", Path.GetFileName(resPath));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

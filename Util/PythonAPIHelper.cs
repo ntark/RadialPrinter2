@@ -25,6 +25,13 @@ namespace RadialPrinter.Util
             return await PythonAPIRequest(url);
         }
 
+        public static async Task<string> GcodePreview(string filePath)
+        {
+            var url = $"{BaseUrl}gcodePreview?filePath={filePath}";
+
+            return await PythonAPIRequest(url);
+        }
+
         private static async Task<string> PythonAPIRequest(string url)
         {
             using HttpClient client = new HttpClient();
