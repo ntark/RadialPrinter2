@@ -5,6 +5,7 @@ import requests
 import json
 import uuid
 from flask import Flask, request
+import matplotlib.pyplot as plt
 
 # svg to gcode from https://github.com/sameer/svg2gcode
 # canny_edge_detection from https://learnopencv.com/edge-detection-using-opencv/
@@ -51,33 +52,40 @@ def image_to_bmp(in_path, out_path):
     img = cv2.imread(in_path)
     cv2.imwrite(out_path, img)
 
+
 def parse_gcode(gcode_file, result_path):
     plt.figure(figsize=(10, 10))
-    with open(gcode_file, 'r') as file:
+    with open(gcode_file, "r") as file:
         px = None
         py = None
         for line in file:
             parts = line.split()
             x = y = None
-            if line.startswith('G1') or line.startswith('G0'):
+            if line.startswith("G1") or line.startswith("G0"):
                 for part in parts:
-                    if part.startswith('X'):
+                    if part.startswith("X"):
                         x = float(part[1:])
-                    elif part.startswith('Y'):
+                    elif part.startswith("Y"):
                         y = float(part[1:])
-                if x is not None and y is not None and px is not None and py is not None:
-                    if line.startswith('G1'):
-                        plt.plot([px, x], [py, y], 'b-')
+                if (
+                    x is not None
+                    and y is not None
+                    and px is not None
+                    and py is not None
+                ):
+                    if line.startswith("G1"):
+                        plt.plot([px, x], [py, y], "b-")
                     else:
-                        plt.plot([px, x], [py, y], 'y-')
+                        plt.plot([px, x], [py, y], "y-")
                 px = x
                 py = y
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('G-code Preview')
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.title("G-code Preview")
     plt.legend()
     plt.grid(True)
-    plt.savefig(result_path, format='png')
+    plt.savefig(result_path, format="png")
+
 
 app = Flask(__name__)
 
@@ -146,6 +154,7 @@ def imageToEdges():
     except Exception as e:
         return str(e), 500
 
+
 @app.route("/gcodePreview", methods=["GET"])
 def gcodePreview():
     try:
@@ -161,7 +170,7 @@ def gcodePreview():
 
     except Exception as e:
         return str(e), 500
-        
+
 
 if __name__ == "__main__":
     app.run(debug=True)
