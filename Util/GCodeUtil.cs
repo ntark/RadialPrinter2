@@ -105,7 +105,7 @@ namespace RadialPrinter.Util
                 orthoPoints.Add(new Point(mode, x, y));
             }
 
-            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".rgcode");
+            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".gcode");
 
             var fileText = string.Join("", orthoPoints.Select(p => $"G{p.Mode} X{p.X} Y{p.Y}{Environment.NewLine}").ToList());
 
