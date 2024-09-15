@@ -1,7 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using OxyPlot.SkiaSharp;
+using OxyPlot;
 using System;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace RadialPrinter.Util
 {
@@ -218,6 +225,80 @@ namespace RadialPrinter.Util
             var fileText = string.Join("", radialNoJumpPoints.Select(r => $"R{r.Mode} {r.R} {r.A}{Environment.NewLine}").ToList());
 
             await File.WriteAllTextAsync(resPath, fileText);
+
+            return resPath;
+        }
+
+        public static async Task<string> GCodePreview(string filePath)
+        {
+            string[] gcodeLines = await File.ReadAllLinesAsync(filePath);
+            var points = new List<Point>();
+
+            Regex regex = new Regex(@"^G([01])\sX([0-9\-\.]+)\sY([0-9\-\.]+)");
+
+            foreach (var line in gcodeLines)
+            {
+                Match match = regex.Match(line);
+                if (match.Success)
+                {
+                    var cut = int.Parse(match.Groups[1].Value);
+                    var x = decimal.Parse(match.Groups[2].Value);
+                    var y = decimal.Parse(match.Groups[3].Value);
+                    points.Add(new Point(cut, x, y));
+                }
+            }
+
+            var plotModel = new PlotModel { Title = "G-code Preview" };
+
+            plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Bottom, Title = "X" });
+            plotModel.Axes.Add(new LinearAxis { Position = AxisPosition.Left, Title = "Y" });
+
+            var lineSeries = new LineSeries { LineStyle = LineStyle.Solid, Color = OxyColors.Blue };
+            var moveSeries = new LineSeries { LineStyle = LineStyle.Solid, Color = OxyColors.Yellow };
+
+            Point? prevPoint = null;
+            foreach (var point in points)
+            {
+                if (prevPoint == null)
+                {
+                    prevPoint = point;
+                    continue;
+                }
+
+                if(point.Mode == 1)
+                {
+                    lineSeries.Points.Add(new DataPoint((double)prevPoint.X, (double)prevPoint.Y));
+                    lineSeries.Points.Add(new DataPoint((double)point.X, (double)point.Y));
+                }
+                else
+                {
+                    moveSeries.Points.Add(new DataPoint((double)prevPoint.X, (double)prevPoint.Y));
+                    moveSeries.Points.Add(new DataPoint((double)point.X, (double)point.Y));
+                }
+
+                prevPoint = point;
+            }
+
+            plotModel.Series.Add(lineSeries);
+            plotModel.Series.Add(moveSeries);
+
+            int width = 1000;
+            int height = 1000;
+
+            var exporter = new PngExporter { Width = width, Height = height };
+
+            var resPath = FileHelper.GetRandomFilePath(Path.GetDirectoryName(filePath), ".png");
+
+            using (var stream = new MemoryStream())
+            {
+                exporter.Export(plotModel, stream);
+                stream.Seek(0, SeekOrigin.Begin);
+
+                using (var image = Image.Load<Rgb24>(stream))
+                {
+                    await image.SaveAsync(resPath);
+                }
+            }
 
             return resPath;
         }

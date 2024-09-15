@@ -16,7 +16,7 @@ namespace RadialPrinter.Controllers
 
         [HttpPost("xyToRad")]
         public async Task<IActionResult> XyToRad(
-            IFormFile file, 
+            IFormFile file,
             double maxDistance = 0.1,
             int radialSteps = -3500,
             int angleSteps = 27800)
@@ -60,12 +60,6 @@ namespace RadialPrinter.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-        //[HttpPost("transform")]
-        //public string Transform()
-        //{
-        //    return "Transform";
-        //}
 
         [HttpPost("fetchLatest")]
         public IActionResult FetchLatest()
@@ -118,13 +112,13 @@ namespace RadialPrinter.Controllers
         }
 
         [HttpPost("gcodePreview")]
-        public async Task<IActionResult> GcodePreview(IFormFile file)
+        public async Task<IActionResult> ParseGCode(IFormFile file)
         {
             try
             {
                 var filePath = await FileHelper.UploadFile(file);
 
-                var resPath = await PythonAPIHelper.GcodePreview(filePath);
+                var resPath = await GCodeUtil.GCodePreview(filePath);
 
                 var fileStream = new FileStream(resPath, FileMode.Open, FileAccess.Read);
 
