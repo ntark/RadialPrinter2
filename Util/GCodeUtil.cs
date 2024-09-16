@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Drawing.Processing;
 
 namespace RadialPrinter.Util
 {
@@ -294,9 +295,16 @@ namespace RadialPrinter.Util
                 exporter.Export(plotModel, stream);
                 stream.Seek(0, SeekOrigin.Begin);
 
-                using (var image = Image.Load<Rgb24>(stream))
+                using (var image = Image.Load<Rgba32>(stream))
                 {
-                    await image.SaveAsync(resPath);
+                    using (var finalImage = new Image<Rgba32>(width, height))
+                    {
+                        finalImage.Mutate(ctx => ctx.Fill(Color.White));
+
+                        finalImage.Mutate(ctx => ctx.DrawImage(image, 1f));
+
+                        await finalImage.SaveAsync(resPath);
+                    }
                 }
             }
 
