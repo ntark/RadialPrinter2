@@ -14,6 +14,23 @@ namespace RadialPrinter.Controllers
             _logger = logger;
         }
 
+        [HttpPost("setLatestFile")]
+        public async Task<IActionResult> SetLatestFile(IFormFile file)
+        {
+            try
+            {
+                var filePath = await FileHelper.UploadFile(file);
+
+                LatestState.LatestPath = filePath;
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("xyToRad")]
         public async Task<IActionResult> XyToRad(
             IFormFile file,
